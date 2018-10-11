@@ -21,5 +21,5 @@ return [
         ->js(__DIR__.'/js/dist/admin.js'),
 
     (new Extend\Routes('forum'))
-        ->get('/auth/github', 'auth.github', GithubAuthController::class),
+        ->get('/auth/cas', 'auth.cas', CASAuthController::class),
 ];

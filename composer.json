@@ -1,22 +1,21 @@
 {
-    "name": "flarum/flarum-ext-auth-github",
-    "description": "Allow users to log in with GitHub.",
+    "name": "ddawx123/flarum-ext-auth-cas",
+    "description": "Allow users to log in with CAS.",
     "type": "flarum-extension",
     "keywords": ["authentication"],
     "license": "MIT",
     "authors": [
         {
-            "name": "Toby Zerner",
-            "email": "toby.zerner@gmail.com"
+            "name": "David Ding",
+            "email": "ding@dingstudio.cn"
         }
     ],
     "support": {
         "issues": "https://github.com/flarum/core/issues",
-        "source": "https://github.com/flarum/flarum-ext-auth-github"
+        "source": "https://github.com/ddawx123/flarum-ext-auth-cas"
     },
     "require": {
-        "flarum/core": "^0.1.0-beta.8",
-        "league/oauth2-github": "^2.0"
+        "flarum/core": "^0.1.0-beta.8"
     },
     "autoload": {
         "psr-4": {
@@ -28,7 +27,7 @@
             "dev-master": "0.1.x-dev"
         },
         "flarum-extension": {
-            "title": "GitHub Login",
+            "title": "CAS Login",
             "icon": {
                 "name": "fab fa-github",
                 "backgroundColor": "#eee",
