@@ -11,9 +11,9 @@ class mCAS {
     /**
      * @var CAS Server
      */
-    protected $cas_server_addr = 'cas.dingstudio.cn';
-    protected $cas_server_port = '443';
-    protected $cas_server_path = 'cas';
+    public static $cas_server_addr = 'cas.dingstudio.cn';
+    public static $cas_server_port = '443';
+    public static $cas_server_path = 'cas';
 
     /**
      * CAS互联登录协议
@@ -22,7 +22,7 @@ class mCAS {
     public function CASLogin() {
         include(dirname(__FILE__).'/CAS-1.3.5/CAS.php');
         //phpCAS::setDebug();
-        phpCAS::client(CAS_VERSION_2_0, $this->cas_server_addr, $this->cas_server_port, $this->cas_server_path);
+        phpCAS::client(CAS_VERSION_2_0, self::$cas_server_addr, self::$cas_server_port, self::$cas_server_path);
         phpCAS::setNoCasServerValidation();
         phpCAS::handleLogoutRequests();
         if (phpCAS::isAuthenticated()) {
@@ -39,7 +39,7 @@ class mCAS {
      */
     public function CASLogout() {
         include(dirname(__FILE__).'/CAS-1.3.5/CAS.php');
-        phpCAS::client(CAS_VERSION_2_0, $this->cas_server_addr, $this->cas_server_port, $this->cas_server_path);
+        phpCAS::client(CAS_VERSION_2_0, self::$cas_server_addr, self::$cas_server_port, self::$cas_server_path);
         phpCAS::logout( array( 'url' => $_SERVER['HTTP_REFERER']));
         session_destroy();
         session_write_close();
