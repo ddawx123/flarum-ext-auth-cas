@@ -13,17 +13,18 @@ namespace Flarum\Auth\CAS;
 use Flarum\Forum\AuthenticationResponseFactory;
 use Flarum\Forum\Controller\AbstractOAuth2Controller;
 use Flarum\Settings\SettingsRepositoryInterface;
-use League\OAuth2\Client\Provider\Github;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Zend\Diactoros\Response\RedirectResponse;
 
 class CASAuthController extends AbstractOAuth2Controller
 {
     /**
      * @var CAS Server
      */
-    protected $provider = 'cas';
     protected $mailSrv = 'dingstudio.cn';
-    protected $authUrl = 'https://cas.dingstudio.cn/cas/login';
+    protected $authUrl = 'https://passport.dingstudio.cn/sso/login';
+    protected $signUrl = 'https://passport.dingstudio.cn/sso/api?format=json&action=verify&';
 
     /**
      * @var SettingsRepositoryInterface
@@ -43,30 +44,29 @@ class CASAuthController extends AbstractOAuth2Controller
     /**
      * {@inheritdoc}
      */
-    protected function getProvider($redirectUri)
+    public function handle(Request $request)
     {
-        require(dirname(__FILE__).'/lib/CASLogic.php');
-        $ticket = !empty(htmlspecialchars(@$_REQUEST['ticket'])) ? htmlspecialchars($_REQUEST['ticket']) : null;
+        $redirectUri = (string) $request->getAttribute('originalUri', $request->getUri())->withQuery('');
+        $ticket = !empty(htmlspecialchars(@$_REQUEST['token'])) ? htmlspecialchars($_REQUEST['token']) : null;
         if (is_null($ticket)) {
-            //mCAS::CASLogin();
-            header('Location: '.$this->authUrl.'?service='.urlencode($redirectUri));
+            header('Location: '.$this->authUrl.'?returnUrl='.urlencode($redirectUri));
             exit();
         }
-        $username = \mCAS::CASLogin();
-        $token = md5(uniqid());
-        //$token = $provider->getAccessToken('authorization_code', compact('ticket'));
-        $provider = $this->provider;
+        $result = file_get_contents($this->signUrl.'token='.$ticket.'&reqtime='.time());
+        $userinfo = json_decode($result, true)['data'];
+        $identification = ['email'  =>  $userinfo['username'].'@'.$this->mailSrv];
+        $suggestions = $this->getSuggestions($userinfo);
+        return $this->authResponse->make($request, $identification, $suggestions);
+    }
 
-        return $this->authResponse->make(
-            'cas', $username,
-            function (Registration $registration) use ($user, $provider, $token) {
-                $registration
-                    ->provideTrustedEmail($this->getEmailFromApi($username))
-                    ->provideAvatar('http://1.gravatar.com/avatar/767fc9c115a1b989744c755db47feb60?s=200&r=pg&d=mp')
-                    ->suggestUsername($username)
-                    ->setPayload(array());
-            }
-        );
+    /**
+     * {@inheritdoc}
+     */
+    protected function getProvider($redirectUri)
+    {
+        $appid = $this->settings->get('flarum-ext-auth-cas.app_id');
+        $appkey = $this->settings->get('flarum-ext-auth-cas.app_secret');
+        return new OAuth($appid, $appkey);
     }
 
     /**
@@ -74,7 +74,7 @@ class CASAuthController extends AbstractOAuth2Controller
      */
     protected function getAuthorizationUrlOptions()
     {
-        return ['scope' => ['user:email']];
+        return null;
     }
 
     /**
@@ -83,24 +83,23 @@ class CASAuthController extends AbstractOAuth2Controller
     protected function getIdentification(ResourceOwnerInterface $resourceOwner)
     {
         return [
-            'email' => $resourceOwner->getEmail() ?: $this->getEmailFromApi()
+            'email' => null ?: $this->getEmailFromApi()
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function getSuggestions(ResourceOwnerInterface $resourceOwner)
+    protected function getSuggestions($userinfo)
     {
+        $username = preg_replace('/[^a-z0-9-_]/i', '', $userinfo['username']);
+        if ($username == '')
+        {
+            $username = $userinfo['user_id'];
+        }
         return [
-            'username' => $resourceOwner->getNickname(),
-            'avatarUrl' => array_get($resourceOwner->toArray(), 'avatar_url')
+            'username' =>  $userinfo['username'],
+            'avatarUrl' => 'https://cas.dingstudio.cn/static/images/head.png'
         ];
-    }
-
-    protected function getEmailFromApi(String $uid)
-    {
-        $email = array('email'=>$uid.'@'.$this->mailSrv);
-        return $email['email'];
     }
 }

@@ -24,7 +24,7 @@ System.register('flarum/auth/cas/main', ['flarum/extend', 'flarum/app', 'flarum/
               className: 'Button LogInButton--cas',
               icon: 'lock',
               path: '/auth/cas' },
-            app.translator.trans('flarum-auth-cas.forum.log_in.with_cas_button')
+            app.translator.trans('通过 CAS 登录/注册')
           ));
         });
       });
