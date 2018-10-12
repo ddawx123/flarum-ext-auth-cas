@@ -19,8 +19,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zend\Diactoros\Response\RedirectResponse;
-use League\OAuth2\Client\Provider\Github;
-use League\OAuth2\Client\Provider\ResourceOwnerInterface;
+//use League\OAuth2\Client\Provider\Github;
+//use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 
 class CASAuthController extends AbstractOAuth2Controller implements RequestHandlerInterface
 {
