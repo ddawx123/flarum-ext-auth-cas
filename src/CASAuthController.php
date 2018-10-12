@@ -13,18 +13,15 @@ namespace Flarum\Auth\GitHub;
 use Flarum\Forum\AuthenticationResponseFactory;
 use Flarum\Forum\Controller\AbstractOAuth2Controller;
 use Flarum\Settings\SettingsRepositoryInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Http\Server\RequestHandlerInterface;
-use Zend\Diactoros\Response\RedirectResponse;
 use League\OAuth2\Client\Provider\Github;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 
-class GitHubAuthController extends AbstractOAuth2Controller implements RequestHandlerInterface
+class GitHubAuthController extends AbstractOAuth2Controller
 {
     /**
      * @var CAS Server
      */
+    protected $provider = 'cas';
     protected $mailSrv = 'dingstudio.cn';
     //protected $authUrl = 'https://cas.dingstudio.cn/cas/login';
 
@@ -49,22 +46,18 @@ class GitHubAuthController extends AbstractOAuth2Controller implements RequestHa
     protected function getProvider($redirectUri)
     {
         include(dirname(__FILE__).'/lib/CASLogic.php');
-        $redirectUri = (string) $request->getAttribute('originalUri', $request->getUri())->withQuery('');
-        $session = $request->getAttribute('session');
-        $queryParams = $request->getQueryParams();
-        $ticket = array_get($queryParams, 'ticket');
-
-        if (!$ticket) {
-            //mCAS::CASLogin();
-            return new RedirectResponse($this->authUrl.'?service='.urlencode($redirectUri));
+        $ticket = !empty(htmlspecialchars(@$_REQUEST['ticket'])) ? htmlspecialchars($_REQUEST['ticket']) : null;
+        if (is_null($ticket)) {
+            mCAS::CASLogin();
+            //header('Location: '.$this->authUrl.'?service='.urlencode($redirectUri));
+            exit();
         }
-
         $username = mCAS::CASLogin();
         $token = md5(uniqid());
         //$token = $provider->getAccessToken('authorization_code', compact('ticket'));
+        $provider = $this->provider;
 
-
-        return $this->response->make(
+        return $this->authResponse->make(
             'cas', $username,
             function (Registration $registration) use ($user, $provider, $token) {
                 $registration
