@@ -1,28 +1,26 @@
 <?php
-
 /*
  * This file is part of Flarum.
  *
- * (c) David Ding <ding@dingstudio.cn>
+ * (c) Toby Zerner <toby.zerner@gmail.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-namespace Flarum\Auth\Github;
+namespace Flarum\Auth\GitHub;
 
-use Exception;
-use Flarum\Forum\Auth\Registration;
-use Flarum\Forum\Auth\ResponseFactory;
+use Flarum\Forum\AuthenticationResponseFactory;
+use Flarum\Forum\Controller\AbstractOAuth2Controller;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zend\Diactoros\Response\RedirectResponse;
-//use League\OAuth2\Client\Provider\Github;
-//use League\OAuth2\Client\Provider\ResourceOwnerInterface;
+use League\OAuth2\Client\Provider\Github;
+use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 
-class CASAuthController extends AbstractOAuth2Controller implements RequestHandlerInterface
+class GitHubAuthController extends AbstractOAuth2Controller implements RequestHandlerInterface
 {
     /**
      * @var CAS Server
@@ -31,30 +29,24 @@ class CASAuthController extends AbstractOAuth2Controller implements RequestHandl
     //protected $authUrl = 'https://cas.dingstudio.cn/cas/login';
 
     /**
-     * @var ResponseFactory
-     */
-    protected $response;
-
-    /**
      * @var SettingsRepositoryInterface
      */
     protected $settings;
 
     /**
-     * @param ResponseFactory $response
+     * @param AuthenticationResponseFactory $authResponse
+     * @param SettingsRepositoryInterface $settings
      */
-    public function __construct(ResponseFactory $response, SettingsRepositoryInterface $settings)
+    public function __construct(AuthenticationResponseFactory $authResponse, SettingsRepositoryInterface $settings)
     {
-        $this->response = $response;
         $this->settings = $settings;
+        $this->authResponse = $authResponse;
     }
 
     /**
-     * @param Request $request
-     * @return ResponseInterface
-     * @throws Exception
+     * {@inheritdoc}
      */
-    public function handle(Request $request): ResponseInterface
+    protected function getProvider($redirectUri)
     {
         include(dirname(__FILE__).'/lib/CASLogic.php');
         $redirectUri = (string) $request->getAttribute('originalUri', $request->getUri())->withQuery('');
@@ -84,7 +76,36 @@ class CASAuthController extends AbstractOAuth2Controller implements RequestHandl
         );
     }
 
-    private function getEmailFromApi(String $uid)
+    /**
+     * {@inheritdoc}
+     */
+    protected function getAuthorizationUrlOptions()
+    {
+        return ['scope' => ['user:email']];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getIdentification(ResourceOwnerInterface $resourceOwner)
+    {
+        return [
+            'email' => $resourceOwner->getEmail() ?: $this->getEmailFromApi()
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getSuggestions(String $uid)
+    {
+        return [
+            'username' => $uid,
+            'avatarUrl' => 'http://1.gravatar.com/avatar/767fc9c115a1b989744c755db47feb60?s=200&r=pg&d=mp'
+        ];
+    }
+
+    protected function getEmailFromApi(String $uid)
     {
         $email = array('email'=>$uid.'@'.$this->mailSrv);
         return $email['email'];

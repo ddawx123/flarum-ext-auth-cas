@@ -30,7 +30,7 @@
         "flarum-extension": {
             "title": "CAS Login",
             "icon": {
-                "name": "fab fa-github",
+                "name": "lock",
                 "backgroundColor": "#eee",
                 "color": "#333"
             }

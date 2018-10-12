@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-use Flarum\Auth\Github\GithubAuthController;
+use Flarum\Auth\CAS\CASAuthController;
 use Flarum\Extend;
 
 return [
