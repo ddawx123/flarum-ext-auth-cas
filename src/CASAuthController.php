@@ -97,11 +97,11 @@ class GitHubAuthController extends AbstractOAuth2Controller implements RequestHa
     /**
      * {@inheritdoc}
      */
-    protected function getSuggestions(String $uid)
+    protected function getSuggestions(ResourceOwnerInterface $resourceOwner)
     {
         return [
-            'username' => $uid,
-            'avatarUrl' => 'http://1.gravatar.com/avatar/767fc9c115a1b989744c755db47feb60?s=200&r=pg&d=mp'
+            'username' => $resourceOwner->getNickname(),
+            'avatarUrl' => array_get($resourceOwner->toArray(), 'avatar_url')
         ];
     }
 

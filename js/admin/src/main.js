@@ -1,7 +1,7 @@
 import app from 'flarum/app';
 
-import GithubSettingsModal from 'flarum/auth/github/components/GithubSettingsModal';
+import CASSettingsModal from 'flarum/auth/cas/components/CASSettingsModal';
 
-app.initializers.add('flarum-auth-github', () => {
-  app.extensionSettings['flarum-auth-github'] = () => app.modal.show(new GithubSettingsModal());
+app.initializers.add('flarum-auth-cas', () => {
+  app.extensionSettings['flarum-auth-cas'] = () => app.modal.show(new CASSettingsModal());
 });
